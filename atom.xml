@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>YYBlog</title>
+  
+  <subtitle>Yi&#39;s Blog</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="https://yyblog.ml/"/>
+  <updated>2019-06-16T05:52:55.086Z</updated>
+  <id>https://yyblog.ml/</id>
+  
+  <author>
+    <name>Yi Kuo</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Code Test</title>
+    <link href="https://yyblog.ml/2019/06/16/Code-Test/"/>
+    <id>https://yyblog.ml/2019/06/16/Code-Test/</id>
+    <published>2019-06-16T03:18:54.000Z</published>
+    <updated>2019-06-16T05:52:55.086Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        
+        
+          &lt;pre class=&quot; language-cpp&quot;&gt;&lt;code class=&quot;language-cpp&quot;&gt;&lt;span class=&quot;token macro property&quot;&gt;#&lt;span class=&quot;token directive
+        
+      
+    
+    </summary>
+    
+      <category term="Programming" scheme="https://yyblog.ml/categories/Programming/"/>
+    
+    
+      <category term="Cpp" scheme="https://yyblog.ml/tags/Cpp/"/>
+    
+  </entry>
+  
+</feed>
