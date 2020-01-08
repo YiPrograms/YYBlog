@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://yyblog.ml/"/>
-  <updated>2019-06-16T05:52:55.086Z</updated>
+  <updated>2020-01-08T16:10:38.383Z</updated>
   <id>https://yyblog.ml/</id>
   
   <author>
@@ -15,6 +15,32 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>[GCI2019] Buffer Overflow</title>
+    <link href="https://yyblog.ml/2020/01/08/GCI2019-BufferOverflow/"/>
+    <id>https://yyblog.ml/2020/01/08/GCI2019-BufferOverflow/</id>
+    <published>2020-01-08T10:48:55.000Z</published>
+    <updated>2020-01-08T16:10:38.383Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        
+        
+          &lt;p&gt;This is the write-up for the task &lt;a href=&quot;https://codein.withgoogle.com/tasks/6516326449807360&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Buffer
+        
+      
+    
+    </summary>
+    
+      <category term="Cyber Security" scheme="https://yyblog.ml/categories/Cyber-Security/"/>
+    
+    
+      <category term="Buffer Overflow" scheme="https://yyblog.ml/tags/Buffer-Overflow/"/>
+    
+  </entry>
   
   <entry>
     <title>Code Test</title>
